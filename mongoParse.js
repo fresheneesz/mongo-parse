@@ -3,9 +3,11 @@
 var proto = require('proto')
 
 var mapValues = require("./mapValues")
+var matches = require("./matches")
 
+exports.DotNotationPointers = require("./DotNotationPointers")
 
-module.exports = proto(function(superclass) {
+exports.parse = proto(function(superclass) {
 
     // static
 
@@ -21,23 +23,22 @@ module.exports = proto(function(superclass) {
     }
 
     this.matches = function(document) {
-        this.parts.forEach(function(part) {
-
-        })
+        return matches(this.parts, document)
     }
 })
 
 
 var complexFieldIndependantOperators = {$and:1, $or:1, $nor:1}
-var simpleFieldIndependantOperators = {$text:1}
+var simpleFieldIndependantOperators = {$text:1, $comment:1}
 
 function parseQuery(query) {
     if(query instanceof Function || typeof(query) === 'string') {
-        if(!(query instanceof Function)) { // its a string
-            query = eval("(function() {return "+query+"})")
+        if(query instanceof Function) {
+            query = "("+query+").call(this)"
         }
 
-        return [Part(undefined, '$where', query)]
+        var normalizedFunction = eval("(function() {var obj=this; return "+query+"})")
+        return [Part(undefined, '$where', normalizedFunction)]
     }
     // else
 
@@ -73,17 +74,19 @@ function parseQuery(query) {
 // returns a Part object
 function parseFieldOperator(field, operator, operand) {
     if(operator === '$elemMatch') {
-        var innerParts = parseElemMatch(operand)
+        var elemMatchInfo = parseElemMatch(operand)
+        var innerParts = elemMatchInfo.parts
+        var implicitField = elemMatchInfo.implicitField
     } else if(operator === '$not') {
         var innerParts = parseNot(field, operand)
     } else {
         var innerParts = []
     }
-    return Part(field, operator, operand, innerParts)
+    return Part(field, operator, operand, innerParts, implicitField)
 }
 
 // takes in the operand of the $elemMatch operator
-// returns the parts that operand parses to
+// returns the parts that operand parses to, and the implicitField value
 function parseElemMatch(operand) {
     if(fieldOperand(operand)) {
         var parts = []
@@ -91,9 +94,9 @@ function parseElemMatch(operand) {
             var innerOperand = operand[operator]
             parts.push(parseFieldOperator(undefined, operator, innerOperand))
         }
-        return parts
+        return {parts: parts, implicitField: true}
     } else {          // non-field operators ( stuff like {a:5} or {$and:[...]} )
-        return parseQuery(operand)
+        return {parts: parseQuery(operand), implicitField: false}
     }
 }
 
@@ -121,12 +124,13 @@ function isObject(value) {
 
 
 var Part = proto(function() {
-    this.init = function(field, operator, operand, parts) {
+    this.init = function(field, operator, operand, parts, implicitField) {
         if(parts === undefined) parts = []
 
         this.field = field
         this.operator = operator
         this.operand = operand
         this.parts = parts
+        this.implicitField = implicitField // only used for a certain type of $elemMatch part
     }
 })

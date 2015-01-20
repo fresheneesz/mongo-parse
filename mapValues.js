@@ -1,6 +1,6 @@
 
-var singleValueOperators = {$gt:1, $gte:1, $in:1, $lt:1, $lte:1, $ne:1}
-var arrayOperators = {$nin:1, $all:1}
+var singleValueOperators = {$gt:1, $gte:1, $lt:1, $lte:1, $ne:1, $not:1} // note that $not is only this type if it has no 'parts'
+var arrayOperators = {$nin:1, $all:1, $in:1}
 //var specialSingleValueOperators = {$geoIntersects:1, $geoWithin:1} // treating as noValueOperators
 //var noValueIndependentOperators = {$where:1, $comment:1}
 //var noValueFieldOperators = {$mod:1, $exists:1, $regex:1, $size:1, $nearSphere:1, $near:1}
