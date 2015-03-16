@@ -3,6 +3,14 @@
 
 A parser for mongo db queries. You can use this to analyze, modify, and match against MongoDb queries.
 
+Example:
+
+```javascript
+var parser = require('mongo-parse')
+parser.parse({ "user_id": { $lt: 42 }})
+// returns: [{field: 'user_id', operator: '$lt', operand: 42}]
+```
+
 Install
 =======
 
