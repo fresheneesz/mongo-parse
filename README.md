@@ -7,8 +7,8 @@ Example:
 
 ```javascript
 var parser = require('mongo-parse')
-parser.parse({ "user_id": { $lt: 42 }})
-// returns: [{field: 'user_id', operator: '$lt', operand: 42}]
+var query = parser.parse({ "user_id": { $lt: 42 }})
+// query.parts contains: [{field: 'user_id', operator: '$lt', operand: 42}]
 ```
 
 Install
