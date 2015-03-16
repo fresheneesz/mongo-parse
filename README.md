@@ -55,6 +55,8 @@ DotNotationPointers
 * `rootObject` - an object that may have the given `field`
 * `field` - a fieldname, which can be expressed in dot notation (e.g. 'x' and 'x.y.0.z' are both valid for `field`)
 
+Note that this returns a list because a single `field` path can map to many actual properties because of how mongo fans out the matching paths for arrays. For example, `DotNotationPointers({a:[{b:1},{b:2}]},"a.b")` will return two pointers, one pointing to "a.0.b" and one pointing to "a.1.b".
+
 DotNotationPointer
 ------------------
 
