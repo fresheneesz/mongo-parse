@@ -10,7 +10,8 @@ var parser = require('mongo-parse')
 var query = parser.parse({ "powerlevel": { $gt: 9000 }})
 // query.parts contains: [{field: 'powerlevel', operator: '$gt', operand: 9000}]
 
-var newQuery = parser.parse({$and:[{userId: "29g8j3h27fh382dh82ae23"},  {animal: {$in: ['beefalo', 'deerclops']}}]}).mapValues(function(field, stringId) {
+var query2 = {$and:[{userId: "29g8j3h27fh382dh82ae23"},  {animal: {$in: ['beefalo', 'deerclops']}}]}
+var newQuery = parser.parse(query2).mapValues(function(field, stringId) {
    if(field === 'user_id')
        return ObjectId(stringId)  // change a string ID into an ObjectId when you need to
 })
