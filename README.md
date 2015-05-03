@@ -7,8 +7,16 @@ Example:
 
 ```javascript
 var parser = require('mongo-parse')
-var query = parser.parse({ "user_id": { $lt: 42 }})
-// query.parts contains: [{field: 'user_id', operator: '$lt', operand: 42}]
+var query = parser.parse({ "powerlevel": { $gt: 9000 }})
+// query.parts contains: [{field: 'powerlevel', operator: '$gt', operand: 9000}]
+
+var newQuery = parser.parse({$and:[{userId: "29g8j3h27fh382dh82ae23"},  {animal: {$in: ['beefalo', 'deerclops']}}]}).mapValues(function(field, stringId) {
+   if(field === 'user_id')
+       return ObjectId(stringId)  // change a string ID into an ObjectId when you need to
+})
+// newQuery is {$and:[{userId: ObjectId("29g8j3h27fh382dh82ae23")}, {animal: {$in: ['beefalo', 'deerclops']}}]}
+
+newQuery.match({userId: ObjectId("29g8j3h27fh382dh82ae23"), animal: 'deerclops'}) // returns true
 ```
 
 Install
