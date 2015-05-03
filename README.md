@@ -12,7 +12,7 @@ var query = parser.parse({ "powerlevel": { $gt: 9000 }})
 
 var query2 = {$and:[{userId: "29g8j3h27fh382dh82ae23"},  {animal: {$in: ['beefalo', 'deerclops']}}]}
 var newQuery = parser.parse(query2).mapValues(function(field, stringId) {
-   if(field === 'user_id')
+   if(field === 'userId')
        return ObjectId(stringId)  // change a string ID into an ObjectId when you need to
 })
 // newQuery is {$and:[{userId: ObjectId("29g8j3h27fh382dh82ae23")}, {animal: {$in: ['beefalo', 'deerclops']}}]}
