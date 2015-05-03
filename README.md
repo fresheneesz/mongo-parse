@@ -83,7 +83,7 @@ A pointer that can get and set a nested property within a mongo document object 
 Todo
 ====
 
-* find method + document projection and projection operators
+* document projection method (and projection operators)
 * Support crazier mongo operators ($geoIntersects, $near, etc)
 
 Changelog
