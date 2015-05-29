@@ -541,10 +541,17 @@ Unit.test("mongo-parse", function(t) {
             this.ok(!parsedQuery.matches({a:5}))
             this.ok(!parsedQuery.matches({}))
 
-            var parsedQuery = parse({a: {$exists: 'x'}})
-            this.ok(parsedQuery.matches({a:{x:1}}))
-            this.ok(!parsedQuery.matches({a:{b:'a'}, b:'a'}))
+            var parsedQuery = parse({a: {$exists: true}})
+            this.ok(parsedQuery.matches({a:{x:1}})) // object value
+            this.ok(parsedQuery.matches({a:false})) // primitive value
+            this.ok(!parsedQuery.matches({b:{b:'a'}, c:'a'}))
             this.ok(!parsedQuery.matches({}))
+
+            // more complex queries for $exists
+            var parsedQuery = parse({'a.b': {$exists: true}})
+            this.ok(parsedQuery.matches({a:[{b:1},{x:'moose'}]})) // array element
+            this.ok(!parsedQuery.matches({}))
+
 
             var parsedQuery = parse({a: {$regex: /x+/}})
             this.ok(parsedQuery.matches({a:'x'}))
@@ -645,6 +652,11 @@ Unit.test("mongo-parse", function(t) {
             this.ok(parsedQuery.matches({a:[0, {x:5}]}))
             this.ok(!parsedQuery.matches({a:[5,6,7]}))
             this.ok(!parsedQuery.matches({a:[{x:6}, {x:7}]}))
+
+            // more complex array subdocuments
+            var parsedQuery = parse({'a.x.y.z': 5})
+            this.ok(parsedQuery.matches({a:[{x:[{y:[{z:5}]}]}]}))
+            this.ok(!parsedQuery.matches({a:[{x:[{y:[{z:6}]}]}]}))
         })
 
         this.test('array equality and element match', function() {
@@ -700,7 +712,7 @@ Unit.test("mongo-parse", function(t) {
     //*/
 
 
-}).writeConsole(500)
+}).writeConsole(1000)
 
 
 

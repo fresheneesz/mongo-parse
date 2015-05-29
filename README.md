@@ -89,6 +89,7 @@ Todo
 Changelog
 ========
 
+* 1.0.1 - fixing bug in $exists matching
 * 1.0.0
     * Adding query matching
     * Adding DotNotationPointers document traversal utility

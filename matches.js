@@ -44,7 +44,7 @@ var simpleComparators = {
     $mod:function(docValue,operand) {return docValue%operand[0] === operand[1]},
     $regex:function(docValue,operand) {return typeof(docValue) === 'string' && docValue.match(RegExp(operand)) !== null},
 
-    $exists:function(docValue,operand) {return docValue instanceof Object && operand in docValue},
+    $exists:function(docValue,operand) {return (docValue !== undefined) === operand},
 
     $in:function(docVal,operand) {
         return operand.indexOf(docVal) !== -1
