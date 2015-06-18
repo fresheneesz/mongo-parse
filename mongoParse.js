@@ -1,32 +1,27 @@
 
 
-var proto = require('proto')
-
 var mapValues = require("./mapValues")
 var matches = require("./matches")
 
 exports.DotNotationPointers = require("./DotNotationPointers")
 
-exports.parse = proto(function(superclass) {
+// routerDefinition should be a function that gets a Route object as its `this` context
+var Parse = function(mongoQuery) {
+    this.parts = parseQuery(mongoQuery)
+}
+Parse.prototype = {}
 
-    // static
+// instance methods
+Parse.prototype.mapValues = function(callback) {
+    return mapValues(this.parts, callback)
+}
+Parse.prototype.matches = function(document) {
+    return matches(this.parts, document)
+}
 
-    // routerDefinition should be a function that gets a Route object as its `this` context
-    this.init = function(mongoQuery) {
-        this.parts = parseQuery(mongoQuery)
-    }
-
-    // instance
-
-    this.mapValues = function(callback) {
-        return mapValues(this.parts, callback)
-    }
-
-    this.matches = function(document) {
-        return matches(this.parts, document)
-    }
-})
-
+exports.parse = function(mongoQuery) {
+    return new Parse(mongoQuery)
+}
 
 var complexFieldIndependantOperators = {$and:1, $or:1, $nor:1}
 var simpleFieldIndependantOperators = {$text:1, $comment:1}
@@ -38,7 +33,7 @@ function parseQuery(query) {
         }
 
         var normalizedFunction = eval("(function() {var obj=this; return "+query+"})")
-        return [Part(undefined, '$where', normalizedFunction)]
+        return [new Part(undefined, '$where', normalizedFunction)]
     }
     // else
 
@@ -49,12 +44,12 @@ function parseQuery(query) {
             var operands = query[key]
             var innerParts = []
             operands.forEach(function(operand) {
-                innerParts.push(Part(undefined, '$and', [operand], parseQuery(operand)))
+                innerParts.push(new Part(undefined, '$and', [operand], parseQuery(operand)))
             })
 
-            parts.push(Part(undefined, operator, query[key], innerParts))
+            parts.push(new Part(undefined, operator, query[key], innerParts))
         } else if(key in simpleFieldIndependantOperators) {
-            parts.push(Part(undefined, key, query[key]))
+            parts.push(new Part(undefined, key, query[key]))
         } else { // a field
             var field = key
             if(isObject(query[key]) && fieldOperand(query[key])) {
@@ -63,7 +58,7 @@ function parseQuery(query) {
                     parts.push(parseFieldOperator(field, innerOperator, innerOperand))
                 }
             } else { // just a value
-                parts.push(Part(field, undefined, query[key]))
+                parts.push(new Part(field, undefined, query[key]))
             }
         }
     }
@@ -82,7 +77,7 @@ function parseFieldOperator(field, operator, operand) {
     } else {
         var innerParts = []
     }
-    return Part(field, operator, operand, innerParts, implicitField)
+    return new Part(field, operator, operand, innerParts, implicitField)
 }
 
 // takes in the operand of the $elemMatch operator
@@ -123,14 +118,12 @@ function isObject(value) {
 }
 
 
-var Part = proto(function() {
-    this.init = function(field, operator, operand, parts, implicitField) {
-        if(parts === undefined) parts = []
+var Part = function(field, operator, operand, parts, implicitField) {
+    if(parts === undefined) parts = []
 
-        this.field = field
-        this.operator = operator
-        this.operand = operand
-        this.parts = parts
-        this.implicitField = implicitField // only used for a certain type of $elemMatch part
-    }
-})
+    this.field = field
+    this.operator = operator
+    this.operand = operand
+    this.parts = parts
+    this.implicitField = implicitField // only used for a certain type of $elemMatch part
+}

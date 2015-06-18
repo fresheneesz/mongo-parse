@@ -1,4 +1,3 @@
-var proto = require('proto')
 
 var DotNotationPointers = module.exports = function(rootObject, property) {
     if(property === undefined) {
@@ -38,7 +37,7 @@ function createPointers(rootObject, propertyParts) {
             var obj = current.obj
             var last = current.last
         }
-        return DotNotationPointer(rootObject, current.propertyPath, {obj:obj, last: last})
+        return new DotNotationPointer(rootObject, current.propertyPath, {obj:obj, last: last})
     })
 }
 
@@ -50,50 +49,47 @@ function getValue(object, key) {
 }
 
 // an object that is passed a dot-syntax property path and can manipulate the value at that path
-var DotNotationPointer = proto(function() {
-
-    // rootObject is the object in which a value will be pointed to
-    // property can either be:
-        // a string, in which case it can have dot notation like "a.b.c"
-        // an array, in which case, each member of the array is a property of the last property (e.g. ['a','b'] is the same thing as "a.b")
-    this.init = function(rootObject, property, propertyInfo) {
-        this.root = rootObject
-        if(property === undefined) {
-            this.property = []
-        } else if(property instanceof Array) {
-            this.property = property
-        } else {
-            this.property = property.split('.')
-        }
-
-        if(propertyInfo !== undefined) {
-            this.propertyInfo = propertyInfo
-        }
+// rootObject is the object in which a value will be pointed to
+// property can either be:
+    // a string, in which case it can have dot notation like "a.b.c"
+    // an array, in which case, each member of the array is a property of the last property (e.g. ['a','b'] is the same thing as "a.b")
+var DotNotationPointer = function(rootObject, property, propertyInfo) {
+    this.root = rootObject
+    if(property === undefined) {
+        this.property = []
+    } else if(property instanceof Array) {
+        this.property = property
+    } else {
+        this.property = property.split('.')
     }
 
-    // getter and setter for the value being pointed to
-    Object.defineProperty(this, 'val', {
-        get: function() {
-            var info = this.propertyInfo
-            if(info.obj === undefined) {
-                return undefined
+    if(propertyInfo !== undefined) {
+        this.propertyInfo = propertyInfo
+    }
+}
+DotNotationPointer.prototype = {}
+
+// getter and setter for the value being pointed to
+Object.defineProperty(DotNotationPointer.prototype, 'val', {
+    get: function() {
+        var info = this.propertyInfo
+        if(info.obj === undefined) {
+            return undefined
+        } else {
+            if(info.last !== undefined) {
+                return info.obj[info.last]
             } else {
-                if(info.last !== undefined) {
-                    return info.obj[info.last]
-                } else {
-                    return info.obj
-                }
+                return info.obj
             }
-        }, set: function(value) {
-            var info = this.propertyInfo
-            if(info.obj === undefined) { // create the path if it doesn't exist
-                createProperty(this)
-            }
-
-            info.obj[info.last] = value
         }
-    })
+    }, set: function(value) {
+        var info = this.propertyInfo
+        if(info.obj === undefined) { // create the path if it doesn't exist
+            createProperty(this)
+        }
 
+        info.obj[info.last] = value
+    }
 })
 
 

@@ -89,6 +89,7 @@ Todo
 Changelog
 ========
 
+* 1.0.2 - removing dependency on proto, since this library doesn't really need much object orientedness
 * 1.0.1 - fixing bug in $exists matching
 * 1.0.0
     * Adding query matching
