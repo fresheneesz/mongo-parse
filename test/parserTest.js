@@ -314,6 +314,15 @@ Unit.test("mongo-parse", function(t) {
             this.eq(pointerz[2].val, 3)
             this.eq(pointerz[3].val, 4)
         })
+
+        this.test('creating properties', function() {
+          var theObject = {};
+          var pointerz = DotNotationPointers(theObject, "a.b");
+          this.eq(pointerz.length, 1);
+
+          pointerz[0].val = 1;
+          this.eq(theObject.a.b, 1);
+        });
     })
 
     this.test('mapValues', function(t) {
