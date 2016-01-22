@@ -22,9 +22,30 @@ Parse.prototype.matches = function(document) {
 exports.parse = function(mongoQuery) {
     return new Parse(mongoQuery)
 }
+exports.inclusive = function(mongoProjection) {
+    return isInclusive(mongoProjection)
+}
 
 var complexFieldIndependantOperators = {$and:1, $or:1, $nor:1}
 var simpleFieldIndependantOperators = {$text:1, $comment:1}
+
+function isInclusive(projection) {
+    for(var k in projection) {
+        if(k !== '_id') {
+            if(!projection[k]) {
+                return false
+            } else if(k === '$meta') {
+                return true
+            } else if(projection[k]) {
+                if(projection[k] instanceof Object && ('$elemMatch' in projection[k] || '$slice'  in projection[k])) {
+                    // ignore
+                } else {
+                    return true
+                }
+            }
+        }
+    }
+}
 
 function parseQuery(query) {
     if(query instanceof Function || typeof(query) === 'string') {

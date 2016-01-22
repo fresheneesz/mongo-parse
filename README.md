@@ -45,6 +45,8 @@ var parser = require('mongo-parse')
 
 **`queryObject.matches(document)`** - returns true if the query matches the passed mongodb `document` object. The following mongo operators are supported: basic equality ({field:value}), $gt, $gte, $lt, $lte, $ne, $in, $nin, $all, $mod, $exists, $regex, $size, $elemMatch, $not, $and, $or, $nor, $where (and implicit where - passing a function), $comment. The following mongo operators are not yet supported $geoIntersects, $geoWithin, $nearSphere, $near, $text, projection operators ($, $meta, $slice)
 
+**`parser.inclusive(mongoProjection)`** - Returns `true` if the projection is inclusive, `false` if it is exclusive, and `undefined` if it is neither. If it is neither, you may either add more exclusive terms or more inclusive terms. Note that fields using the `$elemMatch` or `$slice` [projection operators](https://docs.mongodb.org/v2.6/reference/operator/projection/) can be used with both inclusive and exclusive queries and so have no bearing on inclusiveness. See [here for more info on projections](https://docs.mongodb.org/v2.6/reference/method/db.collection.find/).
+
 QueryPart
 --------------
 
@@ -89,8 +91,10 @@ Todo
 Changelog
 ========
 
-* 1.0.2 - removing dependency on proto, since this library doesn't really need much object orientedness
-* 1.0.1 - fixing bug in $exists matching
+* 1.0.4 - Adding the `inclusive` method.
+* 1.0.3 - Merging in create propety fix by Toby Ealden
+* 1.0.2 - Removing dependency on proto, since this library doesn't really need much object orientedness
+* 1.0.1 - Fixing bug in $exists matching
 * 1.0.0
     * Adding query matching
     * Adding DotNotationPointers document traversal utility

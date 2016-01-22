@@ -694,6 +694,24 @@ Unit.test("mongo-parse", function(t) {
             this.ok(!parsedQuery.matches({x:1}))
         })
 
+        this.test("inclusive", function() {
+            this.eq(parser.inclusive({a:1}), true)
+            this.eq(parser.inclusive({a:true}), true)
+            this.eq(parser.inclusive({a:45}), true)
+            this.eq(parser.inclusive({'a.$':1}), true)
+            this.eq(parser.inclusive({_id:0, a:45}), true)
+            this.eq(parser.inclusive({$meta:'textScore'}), true)
+
+            this.eq(parser.inclusive({a:0}), false)
+            this.eq(parser.inclusive({a:false}), false)
+
+            this.eq(parser.inclusive({}), undefined)
+            this.eq(parser.inclusive({_id:0}), undefined)
+            this.eq(parser.inclusive({a:{$elemMatch:{x:1}}}), undefined)
+            this.eq(parser.inclusive({a:{$slice:4}}), undefined)
+            this.eq(parser.inclusive({a:{$slice:[2,3]}}), undefined)
+        })
+
         this.test("errors", function() {
             this.count(2)
 
