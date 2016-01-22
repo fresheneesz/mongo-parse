@@ -1,7 +1,7 @@
 `mongo-parse`
 ============
 
-A parser for mongo db queries. You can use this to analyze, modify, and match against MongoDb queries.
+A parser for mongo db queries and projections. You can use this to analyze, modify, and match against MongoDb queries, as well as test projections for inclusiveness or exclusiveness.
 
 Example:
 
