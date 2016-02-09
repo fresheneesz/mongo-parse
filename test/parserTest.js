@@ -696,6 +696,7 @@ Unit.test("mongo-parse", function(t) {
 
         this.test("inclusive", function() {
             this.eq(parser.inclusive({a:1}), true)
+            this.eq(parser.inclusive({_id:1}), true)      // mongo apparently cares if _id is explicitly included, but not if its explicitly excluded
             this.eq(parser.inclusive({a:true}), true)
             this.eq(parser.inclusive({a:45}), true)
             this.eq(parser.inclusive({'a.$':1}), true)

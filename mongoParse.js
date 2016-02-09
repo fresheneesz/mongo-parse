@@ -31,17 +31,17 @@ var simpleFieldIndependantOperators = {$text:1, $comment:1}
 
 function isInclusive(projection) {
     for(var k in projection) {
-        if(k !== '_id') {
-            if(!projection[k]) {
+        if(!projection[k]) {
+            if(k !== '_id') {
                 return false
-            } else if(k === '$meta') {
+            }
+        } else if(k === '$meta') {
+            return true
+        } else if(projection[k]) {
+            if(projection[k] instanceof Object && ('$elemMatch' in projection[k] || '$slice'  in projection[k])) {
+                // ignore
+            } else {
                 return true
-            } else if(projection[k]) {
-                if(projection[k] instanceof Object && ('$elemMatch' in projection[k] || '$slice'  in projection[k])) {
-                    // ignore
-                } else {
-                    return true
-                }
             }
         }
     }

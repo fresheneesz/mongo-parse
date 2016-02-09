@@ -91,6 +91,7 @@ Todo
 Changelog
 ========
 
+* 1.0.5 - Fixing bug where {_id:1} was returning undefined rather than true for `inclusive`
 * 1.0.4 - Adding the `inclusive` method.
 * 1.0.3 - Merging in create propety fix by Toby Ealden
 * 1.0.2 - Removing dependency on proto, since this library doesn't really need much object orientedness
