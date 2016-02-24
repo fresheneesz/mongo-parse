@@ -7,17 +7,21 @@ Example:
 
 ```javascript
 var parser = require('mongo-parse')
+var ObjectId = require('mongodb').ObjectId
+
 var query = parser.parse({ "powerlevel": { $gt: 9000 }})
 // query.parts contains: [{field: 'powerlevel', operator: '$gt', operand: 9000}]
 
-var query2 = {$and:[{userId: "29g8j3h27fh382dh82ae23"},  {animal: {$in: ['beefalo', 'deerclops']}}]}
+var query2 = {$and:[{userId: "507f191e810c19729de860ea"},  {animal: {$in: ['beefalo', 'deerclops']}}]}
 var newQuery = parser.parse(query2).mapValues(function(field, stringId) {
    if(field === 'userId')
        return ObjectId(stringId)  // change a string ID into an ObjectId when you need to
+   else
+       return stringId
 })
 // newQuery is {$and:[{userId: ObjectId("29g8j3h27fh382dh82ae23")}, {animal: {$in: ['beefalo', 'deerclops']}}]}
 
-newQuery.match({userId: ObjectId("29g8j3h27fh382dh82ae23"), animal: 'deerclops'}) // returns true
+parser.parse(newQuery).matches({userId: ObjectId("507f191e810c19729de860ea"), animal: 'deerclops'}) // returns true
 ```
 
 Install
