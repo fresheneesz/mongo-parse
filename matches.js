@@ -56,7 +56,13 @@ var simpleComparators = {
         }
     },
     $nin:function(docVal,operand) {
-        return operand.indexOf(docVal) === -1
+        if(Array.isArray(docVal)) {
+            return docVal.every(function(val) {
+                return operand.indexOf(val) === -1;
+            });
+        } else {
+            return operand.indexOf(docVal) === -1
+        }
     },
     $all:function(docVal,operand) {
         return docVal instanceof Array && docVal.reduce(function(last,cur) {

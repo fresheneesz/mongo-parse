@@ -733,35 +733,43 @@ Unit.test("mongo-parse", function(t) {
 
     })
 
-    this.test('searching', function() {
-        // todo
-    })
-
-
-
-
     this.test('$in array match', function() {
 
         var parsedQuery = parser.parse({
             tags:{ $in:['a','b']}
         });
 
-
         this.ok(parsedQuery.matches({ tags:['a', 'b', 'c'] }));
-
         this.ok(parsedQuery.matches({ tags:['a'] }));
-
-        this.ok(!parsedQuery.matches({ tags:[] }));
-
         this.ok(parsedQuery.matches({ tags:'a' }));
 
+        this.ok(!parsedQuery.matches({ tags:[] }));
         this.ok(!parsedQuery.matches({ tags:['d'] }));
         this.ok(!parsedQuery.matches({ tags:['d', 'e'] }));
-
         this.ok(!parsedQuery.matches({ tags:null }));
         this.ok(!parsedQuery.matches({ tags:'' }));
-
     });
+
+    this.test('$nin array match', function() {
+
+        var parsedQuery = parser.parse({
+            tags:{ $nin:['a','b']}
+        });
+
+        this.ok(!parsedQuery.matches({ tags:['a', 'b', 'c'] }));
+        this.ok(!parsedQuery.matches({ tags:['a'] }));
+        this.ok(!parsedQuery.matches({ tags:'a' }));
+
+        this.ok(parsedQuery.matches({ tags:[] }));
+        this.ok(parsedQuery.matches({ tags:['d'] }));
+        this.ok(parsedQuery.matches({ tags:['d', 'e'] }));
+        this.ok(parsedQuery.matches({ tags:null }));
+        this.ok(parsedQuery.matches({ tags:'' }));
+    })
+
+    this.test('searching', function() {
+        // todo
+    })
 
     //*/
 

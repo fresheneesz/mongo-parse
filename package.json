@@ -1,7 +1,7 @@
 {"name":"mongo-parse",
  "description": "A parser for mongo db queries",
  "keywords": ["mongo", "mongodb", "mongo db", "parse", "parser"],
- "version":"1.0.5",
+ "version":"1.0.6",
  "main": "mongoParse.js",
  "author": "Billy Tetrud <bitetrudpublic@gmail.com> (https://github.com/fresheneesz/)",
  "license": {
