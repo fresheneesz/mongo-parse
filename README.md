@@ -47,13 +47,16 @@ var parser = require('mongo-parse')
 * `field` - The field the query part is for. E.g. for `{x:1}`, the field will be `"x"`. Can be `undefined` for certain query parts that don't relate to a specific field (e.g. the `$text` operator).
 * `value` - The value that query part is querying with. E.g. for `{x:1`, the value will be `1`.
 
-**`queryObject.matches(document)`** - Returns true if the query matches the passed mongodb `document` object. The following mongo operators are supported: basic equality ({field:value}), $gt, $gte, $lt, $lte, $ne, $in, $nin, $all, $mod, $exists, $regex, $size, $elemMatch, $not, $and, $or, $nor, $where (and implicit where - passing a function), $comment. The following mongo operators are not yet supported $geoIntersects, $geoWithin, $nearSphere, $near, $text, projection operators ($, $meta, $slice)
+**`queryObject.matches(document, validate)`** - Returns true if the query matches the passed mongodb `document` object. The following mongo operators are supported: basic equality ({field:value}), $gt, $gte, $lt, $lte, $ne, $in, $nin, $all, $mod, $exists, $regex, $size, $elemMatch, $not, $and, $or, $nor, $where (and implicit where - passing a function), $comment. The following mongo operators are not yet supported $geoIntersects, $geoWithin, $nearSphere, $near, $text, projection operators ($, $meta, $slice)
 
-**`parser.search(documents, query, sort)`** - Returns the list of matching `documents` sorted.
+* `validate` - (Optional - Default: true) Whether to validate that the passed document is a correctly structured mongo document or not.
+
+**`parser.search(documents, query, sort, validate)`** - Returns the list of matching `documents` sorted.
 
 * `documents` - The array of documents to search.
 * `query` - The mongo query to search with.
 * `sort` - (Optional) A mongo sort definition to sort by.
+* `validate` - (Optional - Default: true) Whether to validate that the passed document is a correctly structured mongo document or not.
 
 **`parser.inclusive(mongoProjection)`** - Returns `true` if the projection is inclusive, `false` if it is exclusive, and `undefined` if it is neither. If it is neither, you may either add more exclusive terms or more inclusive terms. Note that fields using the `$elemMatch` or `$slice` [projection operators](https://docs.mongodb.org/v2.6/reference/operator/projection/) can be used with both inclusive and exclusive queries and so have no bearing on inclusiveness. See [here for more info on projections](https://docs.mongodb.org/v2.6/reference/method/db.collection.find/).
 
@@ -102,6 +105,7 @@ Todo
 Changelog
 ========
 
+* 1.0.8 - Adding a parameter to turn off document validation for `search` and `matches`
 * 1.0.7
     * Adding the `search` method
     * Changing from use of `eval` to using the more isolated `new Function`

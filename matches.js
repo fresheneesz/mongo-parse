@@ -101,8 +101,9 @@ var compoundOperatorComparators = {
     }
 }
 
-var matches = module.exports = function(parts, document) {
-    validateDocumentObject(document)
+var matches = module.exports = function(parts, document, validate) {
+    if(validate !== false)
+        validateDocumentObject(document)
 
     for(var n=0; n<parts.length; n++) {
         var part = parts[n]

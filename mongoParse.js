@@ -15,8 +15,8 @@ Parse.prototype = {}
 Parse.prototype.mapValues = function(callback) {
     return mapValues(this.parts, callback)
 }
-Parse.prototype.matches = function(document) {
-    return matches(this.parts, document)
+Parse.prototype.matches = function(document, validate) {
+    return matches(this.parts, document, validate)
 }
 
 exports.parse = function(mongoQuery) {
@@ -26,11 +26,11 @@ exports.inclusive = function(mongoProjection) {
     return isInclusive(mongoProjection)
 }
 
-exports.search = function(documents, query, sort) {
+exports.search = function(documents, query, sort, validate) {
     var parsedQuery = new Parse(query)
 
     return documents.filter(function(doc) {
-        return parsedQuery.matches(doc)
+        return parsedQuery.matches(doc, validate)
     }).sort(function(a,b) {
         for(var k in sort) {
             var result = sortCompare(a,b,k)
