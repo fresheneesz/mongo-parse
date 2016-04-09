@@ -768,7 +768,16 @@ Unit.test("mongo-parse", function(t) {
     })
 
     this.test('searching', function() {
-        // todo
+        var documents = [{x:5,y:{z:10}},{x:7,y:{z:10}},{x:6,y:{z:4}},{x:4,y:{z:6}}]
+
+        var results = parser.search(documents, {x: {$gt:4}}, {x:1})
+        this.ok(deepEqual(results, [{x:5,y:{z:10}}, {x:6,y:{z:4}}, {x:7,y:{z:10}}]))
+
+        results = parser.search(documents, {'y.z': 10}, {x:-1})
+        this.ok(deepEqual(results, [{x:7,y:{z:10}}, {x:5,y:{z:10}}]))
+
+        results = parser.search(documents, {}, {'y.z':1, x:-1})
+        this.ok(deepEqual(results, [{x:6,y:{z:4}},{x:4,y:{z:6}},{x:7,y:{z:10}},{x:5,y:{z:10}}]))
     })
 
     //*/

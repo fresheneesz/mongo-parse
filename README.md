@@ -45,9 +45,15 @@ var parser = require('mongo-parse')
 **`queryObject.mapValues(function(field, value) {...})`** - Returns a new mongo query object with values mapped based on the passed in callback. The callback will be called for each leaf-node in the query. For example, in the query `{x:1, $and:[{y:2,z:3}]}`, the callback will be called 3 times. Query parts that don't relate to a field may not trigger the callback. The callback's parameters:
 
 * `field` - The field the query part is for. E.g. for `{x:1}`, the field will be `"x"`. Can be `undefined` for certain query parts that don't relate to a specific field (e.g. the `$text` operator).
-* `value` - the value that query part is querying with. E.g. for `{x:1`, the value will be `1`.
+* `value` - The value that query part is querying with. E.g. for `{x:1`, the value will be `1`.
 
-**`queryObject.matches(document)`** - returns true if the query matches the passed mongodb `document` object. The following mongo operators are supported: basic equality ({field:value}), $gt, $gte, $lt, $lte, $ne, $in, $nin, $all, $mod, $exists, $regex, $size, $elemMatch, $not, $and, $or, $nor, $where (and implicit where - passing a function), $comment. The following mongo operators are not yet supported $geoIntersects, $geoWithin, $nearSphere, $near, $text, projection operators ($, $meta, $slice)
+**`queryObject.matches(document)`** - Returns true if the query matches the passed mongodb `document` object. The following mongo operators are supported: basic equality ({field:value}), $gt, $gte, $lt, $lte, $ne, $in, $nin, $all, $mod, $exists, $regex, $size, $elemMatch, $not, $and, $or, $nor, $where (and implicit where - passing a function), $comment. The following mongo operators are not yet supported $geoIntersects, $geoWithin, $nearSphere, $near, $text, projection operators ($, $meta, $slice)
+
+**`parser.search(documents, query, sort)`** - Returns the list of matching `documents` sorted.
+
+* `documents` - The array of documents to search.
+* `query` - The mongo query to search with.
+* `sort` - (Optional) A mongo sort definition to sort by.
 
 **`parser.inclusive(mongoProjection)`** - Returns `true` if the projection is inclusive, `false` if it is exclusive, and `undefined` if it is neither. If it is neither, you may either add more exclusive terms or more inclusive terms. Note that fields using the `$elemMatch` or `$slice` [projection operators](https://docs.mongodb.org/v2.6/reference/operator/projection/) can be used with both inclusive and exclusive queries and so have no bearing on inclusiveness. See [here for more info on projections](https://docs.mongodb.org/v2.6/reference/method/db.collection.find/).
 
@@ -90,11 +96,15 @@ Todo
 ====
 
 * document projection method (and projection operators)
+* Add projection to the `search` method
 * Support crazier mongo operators ($geoIntersects, $near, etc)
 
 Changelog
 ========
 
+* 1.0.7
+    * Adding the `search` method
+    * Changing from use of `eval` to using the more isolated `new Function`
 * 1.0.6 - Fixing $in and $nin, which previously didn't work for array values
 * 1.0.5 - Fixing bug where {_id:1} was returning undefined rather than true for `inclusive`
 * 1.0.4 - Adding the `inclusive` method.

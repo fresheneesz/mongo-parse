@@ -3,7 +3,7 @@
 var mapValues = require("./mapValues")
 var matches = require("./matches")
 
-exports.DotNotationPointers = require("./DotNotationPointers")
+var DotNotationPointers = exports.DotNotationPointers = require("./DotNotationPointers")
 
 // routerDefinition should be a function that gets a Route object as its `this` context
 var Parse = function(mongoQuery) {
@@ -26,8 +26,42 @@ exports.inclusive = function(mongoProjection) {
     return isInclusive(mongoProjection)
 }
 
+exports.search = function(documents, query, sort) {
+    var parsedQuery = new Parse(query)
+
+    return documents.filter(function(doc) {
+        return parsedQuery.matches(doc)
+    }).sort(function(a,b) {
+        for(var k in sort) {
+            var result = sortCompare(a,b,k)
+            if(result !== 0) {
+                if(sort[k]<0)
+                    result = -result
+
+                return result
+            }
+        }
+
+        return 0 // if it got here, they're the same
+    })
+}
+
 var complexFieldIndependantOperators = {$and:1, $or:1, $nor:1}
 var simpleFieldIndependantOperators = {$text:1, $comment:1}
+
+// compares two documents by a single sort property
+function sortCompare(a,b,sortProperty) {
+    var aVal = DotNotationPointers(a, sortProperty)[0].val // todo: figure out what mongo does with multiple matching sort properties
+    var bVal = DotNotationPointers(b, sortProperty)[0].val
+
+    if(aVal > bVal) {
+        return 1
+    } else if(aVal < bVal) {
+        return -1
+    } else {
+        return 0
+    }
+}
 
 function isInclusive(projection) {
     for(var k in projection) {
@@ -50,10 +84,10 @@ function isInclusive(projection) {
 function parseQuery(query) {
     if(query instanceof Function || typeof(query) === 'string') {
         if(query instanceof Function) {
-            query = "("+query+").call(this)"
+            query = "("+query+").call(obj)"
         }
 
-        var normalizedFunction = eval("(function() {var obj=this; return "+query+"})")
+        var normalizedFunction = new Function("return function(){var obj=this; return "+query+"}")()
         return [new Part(undefined, '$where', normalizedFunction)]
     }
     // else
