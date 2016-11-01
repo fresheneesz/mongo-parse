@@ -83,11 +83,17 @@ Object.defineProperty(DotNotationPointer.prototype, 'val', {
             }
         }
     }, set: function(value) {
-        if(this.propertyInfo.obj === undefined) { // create the path if it doesn't exist
-            createProperty(this)
-        }
+        if (value === undefined) {
+          if (this.propertyInfo.obj !== undefined) {
+            delete this.propertyInfo.obj[this.propertyInfo.last]
+          }
+        } else {
+          if(this.propertyInfo.obj === undefined) { // create the path if it doesn't exist
+              createProperty(this)
+          }
 
-        this.propertyInfo.obj[this.propertyInfo.last] = value
+          this.propertyInfo.obj[this.propertyInfo.last] = value
+        }    
     }
 })
 
