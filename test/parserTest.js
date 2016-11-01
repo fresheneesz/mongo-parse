@@ -323,6 +323,31 @@ Unit.test("mongo-parse", function(t) {
           pointerz[0].val = 1;
           this.eq(theObject.a.b, 1);
         });
+
+        this.test('removing an existing property', function() {
+          var theObject = {};
+          var pointerz = DotNotationPointers(theObject, "a.b");
+          this.eq(pointerz.length, 1);
+
+          pointerz[0].val = 1;
+          this.eq(theObject.a.b, 1);
+
+          pointerz[0].val = undefined;
+          this.eq(theObject.a.hasOwnProperty("b"), false);
+        });
+
+        this.test('removing a property that does not exist', function() {
+          var theObject = {};
+          var pointerz = DotNotationPointers(theObject, "a.b");
+          this.eq(pointerz.length, 1);
+
+          pointerz[0].val = 1;
+          this.eq(theObject.a.b, 1);
+          
+          pointerz = DotNotationPointers(theObject, "a.c");
+          pointerz[0].val = undefined;
+          this.eq(theObject.a.hasOwnProperty("c"), false);
+        });
     })
 
     this.test('mapValues', function(t) {
