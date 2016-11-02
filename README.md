@@ -86,7 +86,7 @@ DotNotationPointer
 
 A pointer that can get and set a nested property within a mongo document object using dot notation. The object has the following properties:
 
-**`pointer.val`** - a getter/setter value that can be used to both get and set the value selected by the `field` passed into the `DotNotationPointers` function.
+**`pointer.val`** - a getter/setter value that can be used to both get and set the value selected by the `field` passed into the `DotNotationPointers` function. Setting the field to `undefined` will `delete` it from the object.
 
 **`pointer.property`** - an array representing the `field`, split by '.'. For example, for `'a'` this will hold `['a']`, and for `'a.b'` this will hold `['a','b']`.
 
@@ -105,6 +105,7 @@ Todo
 Changelog
 ========
 
+* 1.1.0 - `DotNotationPointer.val = undefined` now deletes the property
 * 1.0.8 - Adding a parameter to turn off document validation for `search` and `matches`
 * 1.0.7
     * Adding the `search` method
