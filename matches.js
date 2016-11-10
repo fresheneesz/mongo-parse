@@ -105,15 +105,7 @@ var matches = module.exports = function(parts, document, validate) {
     if(validate !== false)
         validateDocumentObject(document)
 
-    for(var n=0; n<parts.length; n++) {
-        var part = parts[n]
-        if(!partMatches(part, document))
-            return false
-    }
-    // else
-
-    return true
-
+    return parts.every((part) => partMatches(part, document));
 }
 
 function partMatches(part, document) {
