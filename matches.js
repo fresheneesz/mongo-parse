@@ -105,15 +105,7 @@ var matches = module.exports = function(parts, document, validate) {
     if(validate !== false)
         validateDocumentObject(document)
 
-    for(var n=0; n<parts.length; n++) {
-        var part = parts[n]
-        if(!partMatches(part, document))
-            return false
-    }
-    // else
-
-    return true
-
+    return parts.every(function(part) { return partMatches(part, document)});
 }
 
 function partMatches(part, document) {
@@ -261,7 +253,8 @@ function mongoEqual(documentValue,queryOperand) {
 }
 
 function validateDocumentObject(document) {
-    for(var key in document) {
+
+    Object.keys(document).forEach(function(key) {
         if(key[0] === '$')
             throw new Error("Field names can't start with $")
         else if(key.indexOf('.') !== -1)
@@ -269,5 +262,6 @@ function validateDocumentObject(document) {
         else if(document[key] instanceof Object) {
             validateDocumentObject(document[key])
         }
-    }
+    });
+
 }
