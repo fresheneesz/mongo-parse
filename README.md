@@ -45,7 +45,7 @@ var parser = require('mongo-parse')
 **`queryObject.mapValues(function(field, value) {...})`** - Returns a new mongo query object with values mapped based on the passed in callback. The callback will be called for each leaf-node in the query. For example, in the query `{x:1, $and:[{y:2,z:3}]}`, the callback will be called 3 times. Query parts that don't relate to a field may not trigger the callback. The callback's parameters:
 
 * `field` - The field the query part is for. E.g. for `{x:1}`, the field will be `"x"`. Can be `undefined` for certain query parts that don't relate to a specific field (e.g. the `$text` operator).
-* `value` - The value that query part is querying with. E.g. for `{x:1`, the value will be `1`.
+* `value` - The value that query part is querying with. E.g. for `{x:1}`, the value will be `1`.
 
 **`queryObject.matches(document, validate)`** - Returns true if the query matches the passed mongodb `document` object. The following mongo operators are supported: basic equality ({field:value}), $gt, $gte, $lt, $lte, $ne, $in, $nin, $all, $mod, $exists, $regex, $size, $elemMatch, $not, $and, $or, $nor, $where (and implicit where - passing a function), $comment. The following mongo operators are not yet supported $geoIntersects, $geoWithin, $nearSphere, $near, $text, projection operators ($, $meta, $slice)
 
