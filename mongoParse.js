@@ -12,8 +12,11 @@ var Parse = function(mongoQuery) {
 Parse.prototype = {}
 
 // instance methods
+Parse.prototype.map = function(callback) {
+    return map(this.parts, callback)
+}
 Parse.prototype.mapValues = function(callback) {
-    return mapValues(this.parts, callback)
+    return compressQuery(mapValues(this.parts, callback))
 }
 Parse.prototype.matches = function(document, validate) {
     return matches(this.parts, document, validate)
@@ -112,13 +115,116 @@ function parseQuery(query) {
                     var innerOperand = query[key][innerOperator]
                     parts.push(parseFieldOperator(field, innerOperator, innerOperand))
                 }
-            } else { // just a value
-                parts.push(new Part(field, undefined, query[key]))
+            } else { // just a value, shorthand for $eq
+                parts.push(new Part(field, '$eq', query[key]))
             }
         }
     }
 
     return parts
+}
+
+function map(parts, callback) {
+    var result = {}
+    parts.forEach(function(part) {
+        if(part.operator in complexFieldIndependantOperators) {
+            var mappedResult = map(part.parts, callback)
+        } else {            
+            var value = {}; value[part.operator] = part.operand
+            var cbResult = callback(part.field, value)
+            var mappedResult = processMappedResult(part, cbResult)
+        }
+        
+        mergeQueries(result, mappedResult)       
+    })
+
+    compressQuery(result)
+    return result
+    
+    function processMappedResult(part, mappedResult) {
+        if(mappedResult === undefined) {
+            var result = {}, operation = {}
+            operation[part.operator] = part.operand
+            result[part.field] = operation
+            return result
+        } else if(mappedResult ===  null) {
+            return {}                            
+        } else {
+            return mappedResult
+        }
+    }
+}
+
+// merges query b into query a, resolving conflicts by using $and (or other techniques)
+function mergeQueries(a,b) {
+    for(var k in b) {
+        if(k in a) {
+            if(k === '$and') {
+                a[k] = a[k].concat(b[k])  
+            } else {
+                var andOperandA = {}; andOperandA[k] = a[k]
+                var andOperandB = {}; andOperandB[k] = b[k]
+                var and = {$and:[andOperandA,andOperandB]}
+                delete a[k]
+                mergeQueries(a,and)            
+            }
+        } else {
+            a[k] = b[k]
+        }
+    }    
+}
+
+// decanonicalizes the query to remove any $and or $eq that can be merged up with its parent object
+// compresses in place (mutates)
+function compressQuery(x) {
+    for(var operator in complexFieldIndependantOperators) {
+        if(operator in x) {
+            x[operator].forEach(function(query){
+                compressQuery(query)
+            })
+        }
+    }
+    if('$and' in x) {
+        x.$and.forEach(function(andOperand) {
+            for(var k in andOperand) {
+                if(k in x) {
+                    if(!(x[k] instanceof Array) && typeof(x[k]) === 'object' && k[0] !== '$') {
+                        for(var operator in andOperand[k]) {
+                            if(!(operator in x[k])) {
+                                x[k][operator] = andOperand[k][operator]
+                                delete andOperand[k][operator]
+                                if(Object.keys(andOperand[k]).length === 0)
+                                    delete andOperand[k]
+                            }
+                        }  
+                    }  
+                } else {
+                    x[k] = andOperand[k]
+                    delete andOperand[k] 
+                }
+            }
+        })
+        x.$and = x.$and.filter(function(andOperand) {
+            if(Object.keys(andOperand).length === 0)
+                return false
+            else 
+                return true
+        })
+        if(x.$and.length === 0) {
+            delete x.$and
+        }
+    }   
+    
+    for(var k in x) {
+        if(x[k].$eq !== undefined && Object.keys(x[k]).length === 1) {
+            x[k] = x[k].$eq
+        }    
+        if(x[k].$elemMatch !== undefined) {
+            compressQuery(x[k].$elemMatch)
+        }
+    }
+    
+    return x
 }
 
 // returns a Part object

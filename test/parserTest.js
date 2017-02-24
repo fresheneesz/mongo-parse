@@ -10,7 +10,7 @@ var DotNotationPointers = parser.DotNotationPointers
 
 Unit.test("mongo-parse", function(t) {
 
-
+     
 
     //*
     this.test('query parts', function(t) {
@@ -20,7 +20,7 @@ Unit.test("mongo-parse", function(t) {
 
             var part0 = parsedQuery.parts[0]
             this.eq(part0.field , 'a')
-            this.eq(part0.operator , undefined)
+            this.eq(part0.operator , '$eq')
             this.eq(part0.operand , 'av')
             this.eq(part0.implicitField, undefined)
             this.eq(part0.parts.length, 0)
@@ -43,13 +43,13 @@ Unit.test("mongo-parse", function(t) {
 
             var part = parsedQuery.parts[0]
             this.eq(part.field, 'c')
-            this.eq(part.operator, undefined)
+            this.eq(part.operator, '$eq')
             this.eq(part.operand, 'cv')
             this.eq(part.parts.length, 0)
 
             part = parsedQuery.parts[1]
             this.eq(part.field, 'd')
-            this.eq(part.operator, undefined)
+            this.eq(part.operator, '$eq')
             this.eq(part.operand, 'dv')
             this.eq(part.parts.length, 0)
         })
@@ -144,7 +144,7 @@ Unit.test("mongo-parse", function(t) {
 
                     var subSubPart = subPart.parts[0]
                     this.eq(subSubPart.field, 'a')
-                    this.eq(subSubPart.operator, undefined)
+                    this.eq(subSubPart.operator, '$eq')
                     this.eq(subSubPart.operand, 3)
                     this.eq(subSubPart.parts.length, 0)
 
@@ -156,13 +156,13 @@ Unit.test("mongo-parse", function(t) {
 
                     subSubPart = subPart.parts[0]
                     this.eq(subSubPart.field, 'b')
-                    this.eq(subSubPart.operator, undefined)
+                    this.eq(subSubPart.operator, '$eq')
                     this.eq(subSubPart.operand, 'four')
                     this.eq(subSubPart.parts.length, 0)
 
                     subSubPart = subPart.parts[1]
                     this.eq(subSubPart.field, 'c')
-                    this.eq(subSubPart.operator, undefined)
+                    this.eq(subSubPart.operator, '$eq')
                     this.eq(subSubPart.operand, 5)
                     this.eq(subSubPart.parts.length, 0)
         })
@@ -199,13 +199,13 @@ Unit.test("mongo-parse", function(t) {
 
                 subPart = part.parts[0]
                 this.eq(subPart.field, 'x')
-                this.eq(subPart.operator, undefined)
+                this.eq(subPart.operator, '$eq')
                 this.eq(subPart.operand, 1)
                 this.eq(subPart.parts.length, 0)
 
                 subPart = part.parts[1]
                 this.eq(subPart.field, 'y')
-                this.eq(subPart.operator, undefined)
+                this.eq(subPart.operator, '$eq')
                 this.eq(subPart.operand, 2)
                 this.eq(subPart.parts.length, 0)
         })
@@ -216,7 +216,7 @@ Unit.test("mongo-parse", function(t) {
 
             var part = parsedQuery.parts[0]
             this.eq(part.field, 'a')
-            this.eq(part.operator, undefined)
+            this.eq(part.operator, '$eq')
             this.eq(part.operand, 'moose')
             this.eq(part.parts.length, 0)
 
@@ -356,14 +356,15 @@ Unit.test("mongo-parse", function(t) {
         var parsedQuery = parse({
             $or: [
                 {b: {$gt: 3}},
-                {$and: [
+                {$nor: [
                     {c:'four'},
                     {d:{$ne:5}},
                     {$and:[
                         {e:6}
                     ]},
                 ]},
-                {f: [1,2,3]}       // array value
+                {f: [1,2,3]},       // $eq array value
+                {f2: {$ne:[1,2,3]}} // $ne array value       
             ],
             g: 'testing',
             h: {$geoIntersects: {$geometry: {
@@ -399,6 +400,15 @@ Unit.test("mongo-parse", function(t) {
             t.eq(value, 2)
         },function(field, value) {
             t.eq(field, 'f')
+            t.eq(value, 3)
+        },function(field, value) {
+            t.eq(field, 'f2')
+            t.eq(value, 1)
+        },function(field, value) {
+            t.eq(field, 'f2')
+            t.eq(value, 2)
+        },function(field, value) {
+            t.eq(field, 'f2')
             t.eq(value, 3)
         },function(field, value) {
             t.eq(field, 'g')
@@ -454,14 +464,13 @@ Unit.test("mongo-parse", function(t) {
 
         t.ok(deepEqual(newQuery.$or, [
             {b: {$gt: '3_'}},
-            {$and: [
+            {$nor: [
                 {c:'four_'},
                 {d:{$ne:'5_'}},
-                {$and:[
-                    {e:'6_'}
-                ]},
+                {e:'6_'},
             ]},
             {f: ['1_','2_','3_']},
+            {f2: {$ne:['1_','2_','3_']}},
         ]), newQuery.$or)
         t.eq(newQuery.g, 'testing_')
         t.ok(deepEqual(newQuery.h, {$geoIntersects: {$geometry: {
@@ -475,6 +484,104 @@ Unit.test("mongo-parse", function(t) {
         t.ok(deepEqual(newQuery.special2, {$elemMatch: {$gt: '6_'}}), newQuery)
         t.ok(deepEqual(newQuery.$text, {$search: "stringy_"}), newQuery.$text)
 
+    })
+    
+    this.test('map', function(t) {
+        var result = parse({a:1}).map(function(key, value) {
+            t.ok(deepEqual(value,{$eq:1}), value)
+            t.eq(key,'a')
+            return {b:2}
+        })
+        this.eq(Object.keys(result).length, 1)
+        this.eq(result.b, 2)  
+        
+        var result = parse({a:{$not:1, $lt:4}}).map(function(key, value) {
+            t.eq(key,'a')
+            if(value.$not === 1) {
+                return {a:{$gt:3}}
+            } else if(value.$lt === 4) {
+                return {a:{$ne:5}}
+            } else throw ': ('
+        })
+        this.eq(Object.keys(result).length, 1)
+        t.ok(deepEqual(result, {a:{$gt:3,$ne:5}}), result)
+                
+        var result = parse({a:{$exists:false}}).map(function(key, value) {
+            t.eq(key,'a')
+            t.eq(value.$exists, false)
+        })
+        this.eq(Object.keys(result).length, 1)
+        t.ok(deepEqual(result, {a:{$exists:false}}), result)
+                
+        var result = parse({a:{$geoIntersects: {$geometry: {
+          type: "<GeoJSON object type>",
+          coordinates: []
+        }}}}).map(function(key, value) {
+            t.eq(key,'a')              
+            t.ok(deepEqual(value, {$geoIntersects: {$geometry: {
+              type: "<GeoJSON object type>",
+              coordinates: []
+            }}}), value)
+            
+            return {a:4, b:5}
+        })
+        this.eq(Object.keys(result).length, 2)
+        t.ok(deepEqual(result, {a:4,b:5}), result)
+        
+                                      
+        var result = parse({$or: [
+            {a:1}, {b:{$nin:[1,2,3]}}
+        ]}).map(function(key, value) {
+            if(key === 'a') {
+                t.ok(deepEqual(value,{$eq:1}), value)
+                return null
+            } else if(key ==='b') {
+                t.ok(deepEqual(value, {$nin:[1,2,3]}), value)
+                return {c:value}
+            }
+        })
+        t.ok(deepEqual(result, {c:{$nin:[1,2,3]}}), result)
+        
+        var result = parse({$and: [
+            {a:{$all:[1,2,3]}}, {b:{$elemMatch: {x: 5, y: {$lt:9}}}}, {$text: {$search: "stringy"}}
+        ]}).map(function(key, value) {
+            if(key === 'a') {
+                t.ok(deepEqual(value, {$all:[1,2,3]}), value)
+            } else if(key === 'b') {
+                t.ok(deepEqual(value, {$elemMatch: {x: 5, y: {$lt:9}}}), value)
+                return {$text: {$search: "moo"}}
+            } else if(key === undefined) {
+                t.ok(deepEqual(value, {$text: {$search: "stringy"}}), value)
+                return {x:2}
+            }
+        })
+        t.ok(deepEqual(result, {a:{$all:[1,2,3]}, $text: {$search: "moo"}, x:2}), result)
+        
+        
+        var result = parse({a:5, b:5}).map(function(key, value) {
+            if(key === 'b') {
+                return {a:{$gt:3}}
+            }
+        })
+        t.ok(deepEqual(result, {a:5, $and:[{a:{$gt:3}}]}), result)
+        
+        var result = parse({a:{$ne:5}, b:5}).map(function(key, value) {
+            if(key === 'b') {
+                return {a:{$ne:3}}
+            }
+        })
+        t.ok(deepEqual(result, {a:{$ne:5}, $and:[{a:{$ne:3}}]}), result)
+        
+        var result = parse({a:5, d:9, $nor:[{b:9}, {c:10}]}).map(function(key, value) {
+            if(key === 'a') {
+                return {$nor:[{a:{$gt:4}}, {a:{$lt:6}}]}
+            } else if(key === 'd') {
+                return;
+            } else {
+                return null
+            }
+        })
+        t.ok(deepEqual(result, {$nor:[{a:{$gt:4}}, {a:{$lt:6}}], d:9}), result)        
     })
 
     this.test('matching', function() {

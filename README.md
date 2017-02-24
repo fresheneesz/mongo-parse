@@ -42,7 +42,23 @@ var parser = require('mongo-parse')
 
 **`queryObject.parts`** - A list of QueryPart objects.
 
-**`queryObject.mapValues(function(field, value) {...})`** - Returns a new mongo query object with values mapped based on the passed in callback. The callback will be called for each leaf-node in the query. For example, in the query `{x:1, $and:[{y:2,z:3}]}`, the callback will be called 3 times. Query parts that don't relate to a field may not trigger the callback. The callback's parameters:
+**`queryObject.mapValues(function(field, value) {...})`** - Returns a new mongo query object with values mapped based on the passed in 
+      callback. The callback will be called for each leaf-node in the query. 
+      For example, in the query `{x:1, $and:[{y:2,z:3}]}`, the callback will be called 3 times.
+      The value returned from the callback function will replace the original value in the new returned query.
+      Query parts that don't relate to a field may not trigger the callback. The callback's parameters:
+
+* `field` - The field the query part is for. E.g. for `{x:1}`, the field will be `"x"`. Can be `undefined` for certain query parts that don't relate to a specific field (e.g. the `$text` operator).
+* `value` - The value that query part is querying with. E.g. for `{x:1}`, the value will be `1`.
+
+**`queryObject.map(function(field, value) {...})`** - Returns a new mongo query object with query parts mapped based on the 
+        return value of the passed-in callback. 
+        The callback will be called for each leaf-node in the query. 
+        For example, in the query `{x:1, $and:[{y:2,z:3}]}`, the callback will be called 3 times.
+        If the value returned from the callback is `null`, the original query part will be removed.
+        If the value returned from the callback is `undefined`, the original query part will be kept.        
+        Otherwise, the query part will be replaced with the query parts contained in the returned query object.
+        Query parts that don't relate to a field may not trigger the callback. The callback's parameters:
 
 * `field` - The field the query part is for. E.g. for `{x:1}`, the field will be `"x"`. Can be `undefined` for certain query parts that don't relate to a specific field (e.g. the `$text` operator).
 * `value` - The value that query part is querying with. E.g. for `{x:1}`, the value will be `1`.
@@ -66,7 +82,7 @@ QueryPart
 A QueryPart contains the following properties:
 
 * **`field`** - The field a query part relates to. Can be `undefined` if the queryPart doesn't related to a specific field.
-* **`operator`** - The operator of a query part. Will be `undefined` for the basic equality query.
+* **`operator`** - The operator of a query part.
 * **`operand`** - The operand for a query part. This is the whole value or object contained for the given operation. For example, for `{x: 2}` the operand is `2`, for `{x: {$lt:3}}` the operand is `{$lt:3}`, and for {$and:[{x:1},{y:2}]}, the operand is `[{x:1},{y:2}]`.
 * **`parts`** - A list of QueryPart for parts contained within the given query part. For example, for `{a:{$not:{$lt: 4}}}` the parts contains the $lt operator, for `{$and:[{x:1},{y:2}]}` there are two elements in `parts`: one for `{x:1}` and one for `{y:2}`.
 * **`implicitField`** - If false, it means that the `parts` of this $elemMatch query part contains normal query parts. If true, it means that the `parts` of this $elemMatch query part contains field operators (like $gt or $in) that will have `undefined` `field` properties. `implicitField` will be `undefined` for any QueryPart object who's `operator` is not `"$elemMatch"`.
@@ -105,6 +121,11 @@ Todo
 Changelog
 ========
 
+* 2.0.0
+    * BREAKING CHANGE: For basic equality, part.operator will no longer be undefined, but will be $eq.
+    * Support $eq
+    * map method
+    * query simplification
 * 1.1.0 - `DotNotationPointer.val = undefined` now deletes the property
 * 1.0.8 - Adding a parameter to turn off document validation for `search` and `matches`
 * 1.0.7

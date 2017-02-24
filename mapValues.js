@@ -1,5 +1,6 @@
 
-var singleValueOperators = {$gt:1, $gte:1, $lt:1, $lte:1, $ne:1, $not:1} // note that $not is only this type if it has no 'parts'
+var singleValueOperators = {$gt:1, $gte:1, $lt:1, $lte:1, $not:1} // note that $not is only this type if it has no 'parts'
+var possibleMultiValueOperators = {$eq:1, $ne:1}
 var arrayOperators = {$nin:1, $all:1, $in:1}
 //var specialSingleValueOperators = {$geoIntersects:1, $geoWithin:1} // treating as noValueOperators
 //var noValueIndependentOperators = {$where:1, $comment:1}
@@ -19,39 +20,38 @@ var mapValues = module.exports = function(parts, callback, prefix) {
         }
 
         if(part.parts.length === 0) {
-            if(part.operator === undefined) { // equality
+            if(part.operator in singleValueOperators) {
+                if(part.field !== undefined) { // normal situation
+                    addOperator(result,part.field, part.operator, callback(field, part.operand))
+                } else { // if its inside an $elemMatch query
+                    result[part.operator] =  callback(field, part.operand)
+                }
+            } else if(part.operator in possibleMultiValueOperators) {
                 if(part.operand instanceof Array) {
-                    result[part.field] = part.operand.map(function(v) {
+                    var value = part.operand.map(function(v) {
                         return callback(field, v)
                     })
                 } else {
-                    result[part.field] = callback(field, part.operand)
+                    var value = callback(field, part.operand)
+                }   
+                             
+                addOperator(result,part.field, part.operator, value)
+                
+            } else if(part.operator in arrayOperators) {
+                addOperator(result,part.field, part.operator, part.operand.map(function(v) {
+                    return callback(part.field, v)
+                }))
+            } else if(part.operator === '$text') {
+                result.$text = {$search: callback(field, part.operand.$search)}
+                if(part.operand.$language !== undefined) {
+                    result.$text.$language = part.operand.$language
                 }
-
-            } else {                          // some operator
-                if(part.operator in singleValueOperators) {
-                    if(part.field !== undefined) { // normal situation
-                        addOperator(result,part.field, part.operator, callback(field, part.operand))
-                    } else { // if its inside an $elemMatch query
-                        result[part.operator] =  callback(field, part.operand)
-                    }
-                } else if(part.operator in arrayOperators) {
-                    addOperator(result,part.field, part.operator, part.operand.map(function(v) {
-                        return callback(part.field, v)
-                    }))
-
-                } else if(part.operator === '$text') {
-                    result.$text = {$search: callback(field, part.operand.$search)}
-                    if(part.operand.$language !== undefined) {
-                        result.$text.$language = part.operand.$language
-                    }
-                } else { // independent operators with no value
-                    // don't map anything
-                    if(part.field !== undefined) {
-                        addOperator(result,part.field, part.operator, part.operand)
-                    } else {
-                        result[part.operator] = part.operand
-                    }
+            } else { // independent operators with no value
+                // don't map anything
+                if(part.field !== undefined) {
+                    addOperator(result,part.field, part.operator, part.operand)
+                } else {
+                    result[part.operator] = part.operand
                 }
             }
         } else {

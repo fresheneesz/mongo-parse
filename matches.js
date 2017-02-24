@@ -35,6 +35,7 @@ var DotNotationPointers = require("./DotNotationPointers")
         // $, $elemMatch, $meta, $slice
 
 var simpleComparators = {
+    $eq: mongoEqual,
     $gt: function(a,b) {return a>b},
     $gte:function(a,b) {return a>=b},
     $lt:function(a,b) {return a<b},
@@ -113,11 +114,7 @@ function partMatches(part, document) {
     for(var p=0; p<pointers.length; p++) {
         var pointer = pointers[p]
 
-        if(part.operator === undefined) { // equality
-            if(!valueTest(pointer.val, part.operand, mongoEqual)) {
-                continue; // this part doesn't match
-            }
-        } else if(part.operator in simpleComparators) {
+        if(part.operator in simpleComparators) {
             var test = valueTest(pointer.val, part.operand, simpleComparators[part.operator])
             if(!test)
                 continue; // this part doesn't match
@@ -177,7 +174,7 @@ function partMatches(part, document) {
             return true // ignore it
 
         } else {
-            throw new Error("Unsupported operator: "+parts.operator)
+            throw new Error("Unsupported operator: "+part.operator)
         }
         // else
         return true
