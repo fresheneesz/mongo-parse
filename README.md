@@ -121,6 +121,7 @@ Todo
 Changelog
 ========
 
+* 2.0.1 - Fixing bug with fieldless operators (like $text) 
 * 2.0.0
     * BREAKING CHANGE: For basic equality, part.operator will no longer be undefined, but will be $eq.
     * Support $eq

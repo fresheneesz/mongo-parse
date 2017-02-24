@@ -143,9 +143,15 @@ function map(parts, callback) {
     
     function processMappedResult(part, mappedResult) {
         if(mappedResult === undefined) {
-            var result = {}, operation = {}
-            operation[part.operator] = part.operand
-            result[part.field] = operation
+            var result = {}
+            if(part.field === undefined) {
+                result[part.operator] = part.operand
+            } else {
+                var operation = {}
+                operation[part.operator] = part.operand
+                result[part.field] = operation
+            }
+                        
             return result
         } else if(mappedResult ===  null) {
             return {}                            

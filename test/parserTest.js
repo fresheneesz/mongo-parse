@@ -581,7 +581,12 @@ Unit.test("mongo-parse", function(t) {
                 return null
             }
         })
-        t.ok(deepEqual(result, {$nor:[{a:{$gt:4}}, {a:{$lt:6}}], d:9}), result)        
+        t.ok(deepEqual(result, {$nor:[{a:{$gt:4}}, {a:{$lt:6}}], d:9}), result)    
+        
+        var result = parse({$text:{$search:"moose"}}).map(function(key, value) {
+            return;
+        })
+        t.ok(deepEqual(result, {$text:{$search:"moose"}}), result)        
     })
 
     this.test('matching', function() {
