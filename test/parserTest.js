@@ -349,6 +349,25 @@ Unit.test("mongo-parse", function(t) {
           this.eq(theObject.a.hasOwnProperty("c"), false);
         });
     })
+    
+    this.test("compressQuery", function(t) {
+        var test = function(a,b) {
+            var result = parser.compressQuery(a)
+            t.log(JSON.stringify(a))
+            t.ok(deepEqual(result, b), result)
+        }
+        
+        test({a:1}, {a:1})
+        test({a:{$eq:1}}, {a:1})
+        test({a:{$gt:3}, $and:[{a:{$lt:9}}]}, {a:{$gt:3,$lt:9}})
+        test({a:{$gt:3}, $or:[{a:{$lt:1}}, {a:{$gt:9}}]}, {a:{$gt:3}, $or:[{a:{$lt:1}}, {a:{$gt:9}}]})
+        test({$or:[{},{a:1}]}, {a:1})
+        
+        var x = {"$and":[{"$or":[{"parent":"58a017558db10ff76667bba7"},{"ancestry":"58a017558db10ff76667bba7"}],"done":true,"complexity":{"$gt":0},"archived":{"$ne":true}},{"type":{"$ne":"Bug"}}]}
+        var y = {"$or":[{"parent":"58a017558db10ff76667bba7"},{"ancestry":"58a017558db10ff76667bba7"}],"done":true,"complexity":{"$gt":0},"archived":{"$ne":true}, "type":{"$ne":"Bug"}} 
+        test(x, y)
+        
+    })    
 
     this.test('mapValues', function(t) {
         //this.count(20*2 + 10)
@@ -586,7 +605,17 @@ Unit.test("mongo-parse", function(t) {
         var result = parse({$text:{$search:"moose"}}).map(function(key, value) {
             return;
         })
-        t.ok(deepEqual(result, {$text:{$search:"moose"}}), result)        
+        t.ok(deepEqual(result, {$text:{$search:"moose"}}), result)     
+        
+        
+        this.test("former bugs", function(t) {
+            this.test("$or was being treated like an $and", function(t) {
+                var x = {"$and":[{"$or":[{"parent":"58a017558db10ff76667bba7"},{"ancestry":"58a017558db10ff76667bba7"}],"done":true,"complexity":{"$gt":0},"archived":{"$ne":true}},{"type":{"$ne":"Bug"}}]}
+                var y = {"$or":[{"parent":"58a017558db10ff76667bba7"},{"ancestry":"58a017558db10ff76667bba7"}],"done":true,"complexity":{"$gt":0},"archived":{"$ne":true}, "type":{"$ne":"Bug"}} 
+                var result = parse(x).map(function() {})            
+                this.ok(deepEqual(result, y), result)
+            })
+        })
     })
 
     this.test('matching', function() {

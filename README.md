@@ -76,6 +76,8 @@ var parser = require('mongo-parse')
 
 **`parser.inclusive(mongoProjection)`** - Returns `true` if the projection is inclusive, `false` if it is exclusive, and `undefined` if it is neither. If it is neither, you may either add more exclusive terms or more inclusive terms. Note that fields using the `$elemMatch` or `$slice` [projection operators](https://docs.mongodb.org/v2.6/reference/operator/projection/) can be used with both inclusive and exclusive queries and so have no bearing on inclusiveness. See [here for more info on projections](https://docs.mongodb.org/v2.6/reference/method/db.collection.find/).
 
+**`parser.compressQuery(query)`** - Returns the same query but shortened, but collapsing $ands, $ors, and $eqs.
+
 QueryPart
 --------------
 
@@ -121,6 +123,9 @@ Todo
 Changelog
 ========
 
+* 2.0.2 
+    * Exposing compressQuery
+    * Fixing bug where `map` was treating $or like $and
 * 2.0.1 - Fixing bug with fieldless operators (like $text) 
 * 2.0.0
     * BREAKING CHANGE: For basic equality, part.operator will no longer be undefined, but will be $eq.

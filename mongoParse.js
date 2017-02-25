@@ -127,8 +127,13 @@ function parseQuery(query) {
 function map(parts, callback) {
     var result = {}
     parts.forEach(function(part) {
-        if(part.operator in complexFieldIndependantOperators) {
+        if(part.operator === '$and') {
             var mappedResult = map(part.parts, callback)
+        } else if(part.operator in complexFieldIndependantOperators) {
+            var mappedParts = part.parts.map(function(part) {
+                return map(part.parts, callback)
+            })
+            var mappedResult = {$or: mappedParts}
         } else {            
             var value = {}; value[part.operator] = part.operand
             var cbResult = callback(part.field, value)
@@ -182,7 +187,7 @@ function mergeQueries(a,b) {
 
 // decanonicalizes the query to remove any $and or $eq that can be merged up with its parent object
 // compresses in place (mutates)
-function compressQuery(x) {
+var compressQuery = exports.compressQuery = function (x) {
     for(var operator in complexFieldIndependantOperators) {
         if(operator in x) {
             x[operator].forEach(function(query){
@@ -210,16 +215,21 @@ function compressQuery(x) {
                 }
             }
         })
-        x.$and = x.$and.filter(function(andOperand) {
-            if(Object.keys(andOperand).length === 0)
-                return false
-            else 
-                return true
-        })
+        x.$and = filterEmpties(x.$and)
         if(x.$and.length === 0) {
             delete x.$and
         }
     }   
+    if('$or' in x) {
+        x.$or = filterEmpties(x.$or)
+        if(x.$or.length === 0) {
+            delete x.$or
+        } else if(x.$or.length === 1) {
+            var orOperand = x.$or[0]
+            delete x.$or
+            mergeQueries(x,orOperand)
+        }
+    }
     
     for(var k in x) {
         if(x[k].$eq !== undefined && Object.keys(x[k]).length === 1) {
@@ -231,6 +241,15 @@ function compressQuery(x) {
     }
     
     return x
+    
+    function filterEmpties(a) {
+        return a.filter(function(operand) {
+            if(Object.keys(operand).length === 0)
+                return false
+            else 
+                return true 
+        })  
+    }
 }
 
 // returns a Part object
