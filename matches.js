@@ -106,10 +106,10 @@ var matches = module.exports = function(parts, document, validate) {
     if(validate !== false)
         validateDocumentObject(document)
 
-    return parts.every(function(part) { return partMatches(part, document)});
+    return parts.every(function(part) { return partMatches(part, document, validate)});
 }
 
-function partMatches(part, document) {
+function partMatches(part, document, validate) {
     var pointers = DotNotationPointers(document, part.field)
     for(var p=0; p<pointers.length; p++) {
         var pointer = pointers[p]
@@ -124,7 +124,7 @@ function partMatches(part, document) {
             }
         } else if(part.operator === '$not') {
             if(part.parts.length > 0) {
-                if(matches(part.parts, document)) {
+                if(matches(part.parts, document, validate)) {
                     continue; // this part doesn't match
                 }
             } else {
@@ -153,7 +153,7 @@ function partMatches(part, document) {
                     var documentToMatch = documentField[n]
                 }
 
-                if(matches(part.parts, documentToMatch)) {
+                if(matches(part.parts, documentToMatch, validate)) {
                     anyMatched = true
                     break;
                 }
