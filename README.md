@@ -123,6 +123,7 @@ Todo
 Changelog
 ========
 
+* 2.0.3 - Fixing bug where the `validate` parameter wasn't being respected in certain cases (Thanks jgpacheco!)
 * 2.0.2 
     * Exposing compressQuery
     * Fixing bug where `map` was treating $or like $and
