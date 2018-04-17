@@ -235,7 +235,7 @@ var compressQuery = exports.compressQuery = function (x) {
         if(x[k].$eq !== undefined && Object.keys(x[k]).length === 1) {
             x[k] = x[k].$eq
         }    
-        if(x[k].$elemMatch !== undefined) {
+        if(x[k] && x[k].$elemMatch !== undefined) {
             compressQuery(x[k].$elemMatch)
         }
     }
