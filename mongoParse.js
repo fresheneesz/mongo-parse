@@ -134,18 +134,18 @@ function map(parts, callback) {
                 return map(part.parts, callback)
             })
             var mappedResult = {$or: mappedParts}
-        } else {            
+        } else {
             var value = {}; value[part.operator] = part.operand
             var cbResult = callback(part.field, value)
             var mappedResult = processMappedResult(part, cbResult)
         }
-        
-        mergeQueries(result, mappedResult)       
+
+        mergeQueries(result, mappedResult)
     })
 
     compressQuery(result)
     return result
-    
+
     function processMappedResult(part, mappedResult) {
         if(mappedResult === undefined) {
             var result = {}
@@ -156,10 +156,10 @@ function map(parts, callback) {
                 operation[part.operator] = part.operand
                 result[part.field] = operation
             }
-                        
+
             return result
         } else if(mappedResult ===  null) {
-            return {}                            
+            return {}
         } else {
             return mappedResult
         }
@@ -171,18 +171,18 @@ function mergeQueries(a,b) {
     for(var k in b) {
         if(k in a) {
             if(k === '$and') {
-                a[k] = a[k].concat(b[k])  
+                a[k] = a[k].concat(b[k])
             } else {
                 var andOperandA = {}; andOperandA[k] = a[k]
                 var andOperandB = {}; andOperandB[k] = b[k]
                 var and = {$and:[andOperandA,andOperandB]}
                 delete a[k]
-                mergeQueries(a,and)            
+                mergeQueries(a,and)
             }
         } else {
             a[k] = b[k]
         }
-    }    
+    }
 }
 
 // decanonicalizes the query to remove any $and or $eq that can be merged up with its parent object
@@ -207,11 +207,11 @@ var compressQuery = exports.compressQuery = function (x) {
                                 if(Object.keys(andOperand[k]).length === 0)
                                     delete andOperand[k]
                             }
-                        }  
-                    }  
+                        }
+                    }
                 } else {
                     x[k] = andOperand[k]
-                    delete andOperand[k] 
+                    delete andOperand[k]
                 }
             }
         })
@@ -219,7 +219,7 @@ var compressQuery = exports.compressQuery = function (x) {
         if(x.$and.length === 0) {
             delete x.$and
         }
-    }   
+    }
     if('$or' in x) {
         x.$or = filterEmpties(x.$or)
         if(x.$or.length === 0) {
@@ -230,25 +230,25 @@ var compressQuery = exports.compressQuery = function (x) {
             mergeQueries(x,orOperand)
         }
     }
-    
+
     for(var k in x) {
-        if(x[k].$eq !== undefined && Object.keys(x[k]).length === 1) {
+        if(x[k] && x[k].$eq !== undefined && Object.keys(x[k]).length === 1) {
             x[k] = x[k].$eq
-        }    
-        if(x[k].$elemMatch !== undefined) {
+        }
+        if(x[k] && x[k].$elemMatch !== undefined) {
             compressQuery(x[k].$elemMatch)
         }
     }
-    
+
     return x
-    
+
     function filterEmpties(a) {
         return a.filter(function(operand) {
             if(Object.keys(operand).length === 0)
                 return false
-            else 
-                return true 
-        })  
+            else
+                return true
+        })
     }
 }
 
