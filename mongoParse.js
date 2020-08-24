@@ -87,10 +87,13 @@ function isInclusive(projection) {
 function parseQuery(query) {
     if(query instanceof Function || typeof(query) === 'string') {
         if(query instanceof Function) {
-            query = "("+query+").call(obj)"
+            query = `(${query}).call(obj)`
         }
-
-        var normalizedFunction = new Function("return function(){var obj=this; return "+query+"}")()
+        var funcStr = `return function(){var obj=this; return ${query}}`;
+        if (funcStr.includes("eval")||funcStr.includes("exec")) {
+            throw EvalError('potentially dangerous function detected')
+        }
+        var normalizedFunction = new Function(funcStr)()
         return [new Part(undefined, '$where', normalizedFunction)]
     }
     // else
