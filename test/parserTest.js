@@ -953,6 +953,15 @@ Unit.test("mongo-parse", function(t) {
         this.ok(deepEqual(results, [{x:6,y:{z:4}},{x:4,y:{z:6}},{x:7,y:{z:10}},{x:5,y:{z:10}}]))
     })
 
+    this.test('malicious string', function() {
+        var query = "} + eval(\'console.log(\"my ver evil stuff here\");\')//";
+        try{
+            parser.parse(query);
+        } catch (e) {
+            this.ok(deepEqual(e, EvalError))
+        }
+    })
+
     //*/
 
 

@@ -1,5 +1,7 @@
 
 var DotNotationPointers = require("./DotNotationPointers")
+var sanitizer = require("eval-sanitizer");
+sanitizer.setPolicy(sanitizer.NO_FUNCTION_CALLS);
 
 // simple equality {a: 'a'}
 // simple operator queries {b: {$gt: '3'}}
@@ -252,6 +254,7 @@ function mongoEqual(documentValue,queryOperand) {
 function validateDocumentObject(document) {
 
     Object.keys(document).forEach(function(key) {
+        key = sanitizer `${key}`
         if(key[0] === '$')
             throw new Error("Field names can't start with $")
         else if(key.indexOf('.') !== -1)
